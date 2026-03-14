@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 const Auth = () => {
+  const [mode, setMode] = useState('sign-in');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -12,19 +14,19 @@ const Auth = () => {
     setError('');
     setMessage('');
 
-    if (!email) {
-      setError('Enter your email address.');
+    if (!email || !password) {
+      setError('Enter both email and password.');
       return;
     }
 
     setSubmitting(true);
 
-    const { error: authError } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: window.location.href.split('#')[0],
-      },
-    });
+    const authAction =
+      mode === 'sign-up'
+        ? supabase.auth.signUp({ email, password })
+        : supabase.auth.signInWithPassword({ email, password });
+
+    const { error: authError } = await authAction;
 
     setSubmitting(false);
 
@@ -33,7 +35,12 @@ const Auth = () => {
       return;
     }
 
-    setMessage('Check your email for the sign-in link.');
+    if (mode === 'sign-up') {
+      setMessage('Account created. If email confirmation is enabled in Supabase, confirm your email before signing in.');
+      return;
+    }
+
+    setMessage('Signed in successfully.');
   };
 
   return (
@@ -43,7 +50,32 @@ const Auth = () => {
           <h1 style={{ background: 'linear-gradient(to right, #a5b4fc, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Sync Your Leases
           </h1>
-          <p className="subtitle">Sign in with email to access the same leases on every device.</p>
+          <p className="subtitle">Create an account once, then sign in with email and password on any device.</p>
+        </div>
+
+        <div className="auth-toggle">
+          <button
+            type="button"
+            className={`auth-tab ${mode === 'sign-in' ? 'active' : ''}`}
+            onClick={() => {
+              setMode('sign-in');
+              setError('');
+              setMessage('');
+            }}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            className={`auth-tab ${mode === 'sign-up' ? 'active' : ''}`}
+            onClick={() => {
+              setMode('sign-up');
+              setError('');
+              setMessage('');
+            }}
+          >
+            Create Account
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -59,11 +91,29 @@ const Auth = () => {
             <label className="text-label" htmlFor="email">Email Address</label>
           </div>
 
+          <div className="input-group">
+            <input
+              type="password"
+              id="password"
+              placeholder=" "
+              autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <label className="text-label" htmlFor="password">Password</label>
+          </div>
+
           {error ? <div className="errorMessage">{error}</div> : null}
           {message ? <div className="infoMessage">{message}</div> : null}
 
           <button type="submit" disabled={submitting}>
-            {submitting ? 'Sending Link...' : 'Email Me a Sign-In Link'}
+            {submitting
+              ? mode === 'sign-up'
+                ? 'Creating Account...'
+                : 'Signing In...'
+              : mode === 'sign-up'
+                ? 'Create Account'
+                : 'Sign In'}
           </button>
         </form>
       </div>

@@ -14,6 +14,7 @@ const Setup = () => {
           <p>2. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to a local `.env` file.</p>
           <p>3. Add the same values as GitHub repository secrets for deployment.</p>
           <p>4. Run the SQL in `supabase/schema.sql` inside the Supabase SQL Editor.</p>
+          <p>5. In Supabase Authentication settings, enable Email provider for sign-in.</p>
         </div>
       </div>
     </main>
