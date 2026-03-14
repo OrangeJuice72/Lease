@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 
-const Layout = ({ user, onSignOut }) => {
+const Layout = ({ onSignOut }) => {
   return (
     <>
       <div className="decoration dec-1"></div>
@@ -15,18 +15,14 @@ const Layout = ({ user, onSignOut }) => {
             View Leases
           </NavLink>
         </div>
-      </nav>
-
-      <main style={{ paddingTop: '100px', paddingBottom: '120px', display: 'flex', justifyContent: 'center', minHeight: '100vh', width: '100%' }}>
-        <Outlet />
-      </main>
-
-      <div className="bottom-session">
-        <span className="nav-user">{user.email}</span>
-        <button type="button" className="secondary-button" onClick={onSignOut}>
+        <button type="button" className="secondary-button top-signout" onClick={onSignOut}>
           Sign Out
         </button>
-      </div>
+      </nav>
+
+      <main style={{ paddingTop: '100px', display: 'flex', justifyContent: 'center', minHeight: '100vh', width: '100%' }}>
+        <Outlet />
+      </main>
     </>
   );
 };

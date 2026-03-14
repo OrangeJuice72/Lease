@@ -65,9 +65,14 @@ DTEND:${dtEnd}
 SUMMARY:Lease Due: ${displayLabel}
 DESCRIPTION:Friendly reminder that the lease for ${tenant} (${unit}) is up!${rentDisplay}
 BEGIN:VALARM
+TRIGGER:-P30D
+ACTION:DISPLAY
+DESCRIPTION:Lease reminder in 30 days
+END:VALARM
+BEGIN:VALARM
 TRIGGER:-P1W
 ACTION:DISPLAY
-DESCRIPTION:Reminder
+DESCRIPTION:Lease reminder in 7 days
 END:VALARM
 END:VEVENT
 END:VCALENDAR`;
