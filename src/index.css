@@ -233,7 +233,7 @@ nav {
   width: 100%;
   padding: 20px 0;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   backdrop-filter: blur(10px);
   z-index: 50;
@@ -247,6 +247,11 @@ nav {
   display: flex;
   align-items: center;
   gap: 20px;
+}
+
+.nav-session {
+  position: absolute;
+  right: 24px;
 }
 
 nav a {
@@ -355,5 +360,9 @@ nav a:hover {
     width: 100%;
     justify-content: center;
     flex-wrap: wrap;
+  }
+
+  .nav-session {
+    position: static;
   }
 }
