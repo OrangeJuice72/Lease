@@ -1,19 +1,48 @@
-export const getLeases = () => JSON.parse(localStorage.getItem('leases') || '[]');
+import { supabase } from '../lib/supabase';
 
-export const saveLease = (tenant, unit, date, rent) => {
-  const leases = getLeases();
-  leases.push({ id: Date.now(), tenant, unit, date, rent });
-  localStorage.setItem('leases', JSON.stringify(leases));
+export const getLeases = async (userId) => {
+  const { data, error } = await supabase
+    .from('leases')
+    .select('*')
+    .eq('user_id', userId)
+    .order('date', { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
 };
 
-export const deleteLease = (id) => {
-  const leases = getLeases().filter(l => l.id !== id);
-  localStorage.setItem('leases', JSON.stringify(leases));
+export const saveLease = async ({ tenant, unit, date, rent, userId }) => {
+  const { error } = await supabase.from('leases').insert({
+    tenant,
+    unit,
+    date,
+    rent: rent || null,
+    user_id: userId,
+  });
+
+  if (error) {
+    throw error;
+  }
+};
+
+export const deleteLease = async (id, userId) => {
+  const { error } = await supabase
+    .from('leases')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId);
+
+  if (error) {
+    throw error;
+  }
 };
 
 export const generateICS = (tenant, unit, dateVal, rent) => {
   const dateObj = new Date(dateVal + 'T09:00:00');
-  
+
   const formatICSDate = (d) => {
     return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
   };
@@ -23,7 +52,7 @@ export const generateICS = (tenant, unit, dateVal, rent) => {
   const dtEnd = formatICSDate(endObj);
 
   const displayLabel = `${tenant} - ${unit}`;
-  const rentDisplay = rent ? `\nMonthly Rent: $${rent}` : "";
+  const rentDisplay = rent ? `\nMonthly Rent: $${rent}` : '';
 
   const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -45,7 +74,7 @@ END:VCALENDAR`;
 
   const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
-  
+
   const link = document.createElement('a');
   link.href = url;
   link.setAttribute('download', `Lease_${displayLabel.replace(/\s+/g, '_')}.ics`);

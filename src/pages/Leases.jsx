@@ -1,22 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getLeases, deleteLease } from '../utils/leaseUtils';
 
-const Leases = () => {
+const Leases = ({ user }) => {
   const [leases, setLeases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const loadLeases = useCallback(async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const data = await getLeases(user.id);
+      setLeases(data);
+    } catch (err) {
+      setError(err.message || 'Unable to load leases.');
+    } finally {
+      setLoading(false);
+    }
+  }, [user.id]);
 
   useEffect(() => {
     loadLeases();
-  }, []);
+  }, [loadLeases]);
 
-  const loadLeases = () => {
-    const data = getLeases();
-    data.sort((a, b) => new Date(a.date) - new Date(b.date));
-    setLeases(data);
-  };
-
-  const handleDelete = (id) => {
-    deleteLease(id);
-    loadLeases();
+  const handleDelete = async (id) => {
+    try {
+      await deleteLease(id, user.id);
+      loadLeases();
+    } catch (err) {
+      setError(err.message || 'Unable to delete lease.');
+    }
   };
 
   return (
@@ -29,7 +43,15 @@ const Leases = () => {
       </div>
 
       <div id="leasesList">
-        {leases.length === 0 ? (
+        {error ? (
+          <p style={{ textAlign: 'center', color: '#fca5a5', marginTop: '40px' }}>
+            {error}
+          </p>
+        ) : loading ? (
+          <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '40px' }}>
+            Loading leases...
+          </p>
+        ) : leases.length === 0 ? (
           <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '40px' }}>
             No active leases found.
           </p>

@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { saveLease, generateICS } from '../utils/leaseUtils';
 
-const Home = () => {
+const Home = ({ user }) => {
   const [tenant, setTenant] = useState('');
   const [unit, setUnit] = useState('');
   const [rent, setRent] = useState('');
   const [date, setDate] = useState('');
   const [error, setError] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSaveError('');
+
     if (!tenant || !unit || !date) {
       setError(true);
       const card = document.getElementById('formCard');
@@ -21,16 +25,24 @@ const Home = () => {
     }
 
     setError(false);
-    saveLease(tenant, unit, date, rent);
-    generateICS(tenant, unit, date, rent);
-    
-    setSuccess(true);
-    setTenant('');
-    setUnit('');
-    setRent('');
-    setDate('');
+    setSubmitting(true);
 
-    setTimeout(() => setSuccess(false), 3000);
+    try {
+      await saveLease({ tenant, unit, date, rent, userId: user.id });
+      generateICS(tenant, unit, date, rent);
+
+      setSuccess(true);
+      setTenant('');
+      setUnit('');
+      setRent('');
+      setDate('');
+
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setSaveError(err.message || 'Unable to save lease.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -80,6 +92,7 @@ const Home = () => {
         </div>
 
         {error && <div className="errorMessage">Please fill in all fields correctly.</div>}
+        {saveError && <div className="errorMessage">{saveError}</div>}
 
         <div className="input-group" style={{ marginBottom: '32px' }}>
           <label className="date-label" htmlFor="leaseDate">Lease End Date</label>
@@ -91,7 +104,7 @@ const Home = () => {
           />
         </div>
 
-        <button type="submit" className={success ? 'success' : ''} id="saveBtn">
+        <button type="submit" className={success ? 'success' : ''} id="saveBtn" disabled={submitting}>
           {success ? (
             <>
               <svg className="icon" viewBox="0 0 24 24">
@@ -99,6 +112,8 @@ const Home = () => {
               </svg>
               Saved!
             </>
+          ) : submitting ? (
+            'Saving...'
           ) : (
             <>
               <svg className="icon" viewBox="0 0 24 24">
